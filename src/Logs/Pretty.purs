@@ -77,7 +77,7 @@ instance parseImplStr ::
 
 {-----------------------------------------------------------------------}
 
--- | Creates a variadic function `f` that results in a `LogSpec by
+-- | Creates a variadic function `f` for creating a `LogSpec` by
 -- | parsing the provided type-level symbol.
 class MakeLogSpec ( s :: Symbol ) f | s -> f where
   mkLogSpec :: Proxy s -> f
@@ -90,8 +90,8 @@ instance mkLogSpecDefault ::
 
 {-----------------------------------------------------------------------}
 
--- | Creates a variadic function `f` that results in a `LogSpec using
--- | the provided list of format specifiers.
+-- | Creates a variadic function `f` for creating a `LogSpec` by
+-- | traversing the provided list of format specifiers.
 class MakeLogSpecImpl ( l :: FList ) f | l -> f where
   mkLogSpecImpl :: Proxy l -> ( Array CSS ) -> f
 
@@ -100,11 +100,9 @@ instance mkLogSpecImplDefault ::
   ) => MakeLogSpecImpl l f where
   mkLogSpecImpl l = mkLogSpecCss l l
 
-
 {-----------------------------------------------------------------------}
 
--- | Creates the first half of the variadic function `f` that handles
--- | variadic arguments for `CSS` styling.
+-- | Emits `CSS` arguments for the variadic function `f`.
 class MakeLogSpecCss ( k :: FList )( l :: FList ) f | l -> f where
   mkLogSpecCss :: Proxy k -> Proxy l -> ( Array CSS ) -> f
 
@@ -129,8 +127,7 @@ instance mkLogSpecCssConsA ::
 
 {-----------------------------------------------------------------------}
 
--- | Creates the second half of the variadic function `f` that handles
--- | variadic arguments for string formatting.
+-- | Emits string formatting arguments for the variadic function `f`.
 class MakeLogSpecFmt ( l :: FList ) f | l -> f where
   mkLogSpecFmt :: ( Array CSS ) -> Proxy l -> String -> f
 
