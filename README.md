@@ -56,6 +56,7 @@ in  upstream
           [ "console"
           , "effect"
           , "newtype"
+          , "prelude"
           ]
         , version = "..."
         }
