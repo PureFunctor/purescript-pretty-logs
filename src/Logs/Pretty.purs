@@ -2,6 +2,7 @@ module Logs.Pretty where
 
 import Prelude
 
+import Data.Newtype (class Newtype, unwrap)
 import Data.Symbol (class IsSymbol, reflectSymbol)
 import Effect (Effect)
 import Prim.Symbol as Symbol
@@ -126,7 +127,7 @@ instance mkLogSpecFmtConsA ::
 {-----------------------------------------------------------------------}
 
 class MakeLogSpecCss ( l :: FList ) f | l -> f where
-  mkLogSpecCss :: String -> Proxy l -> ( Array String ) -> f
+  mkLogSpecCss :: String -> Proxy l -> ( Array CSS ) -> f
 
 instance mkLogSpecCssEnd :: MakeLogSpecCss FNil LogSpec where
   mkLogSpecCss m _ xs = { message: m, styling: xs }
@@ -135,7 +136,7 @@ else
 
 instance mkLogSpecCssConsC ::
   ( MakeLogSpecCss r f
-  ) => MakeLogSpecCss ( FCons FStyling r ) ( String -> f ) where
+  ) => MakeLogSpecCss ( FCons FStyling r ) ( CSS -> f ) where
   mkLogSpecCss m _ xs x = mkLogSpecCss m ( Proxy :: Proxy r ) ( xs <> [ x ] )
 
 else
@@ -147,13 +148,28 @@ instance mkLogSpecCssConsA ::
 
 {-----------------------------------------------------------------------}
 
+-- | Newtype wrapper for inline CSS.
+newtype CSS = CSS String
+
+derive instance newtypeCss :: Newtype CSS _
+
+
+-- | Represents arguments used for `console.log`.
+-- |
+-- | Used in the following manner internally:
+-- |
+-- | ```javascript
+-- | console.log(message, ...styling)
+-- | ```
 type LogSpec =
   { message :: String
-  , styling :: Array String
+  , styling :: Array CSS
   }
+
+{-----------------------------------------------------------------------}
 
 foreign import logPretty_ :: String -> Array String -> Effect Unit
 
-
+-- | Performs logging using a provided `LogSpec`.
 logPretty :: LogSpec -> Effect Unit
-logPretty { message, styling } = logPretty_ message styling
+logPretty { message, styling } = logPretty_ message (unwrap <$> styling)
