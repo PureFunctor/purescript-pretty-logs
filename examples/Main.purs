@@ -21,7 +21,7 @@ logBlack = logPretty <<< logBlack_
 logSimple :: String -> Effect Unit
 logSimple m = logPretty
   { message: "%c " <> m
-  , styling: CSS "background-color: black; color: white;"
+  , styling: [ CSS "background-color: black; color: white;" ]
   }
 
 
