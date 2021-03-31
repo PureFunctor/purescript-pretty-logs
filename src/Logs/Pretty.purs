@@ -112,8 +112,9 @@ else
 
 instance mkLogSpecFmtConsS ::
   ( MakeLogSpecFmt k r f
-  ) => MakeLogSpecFmt k ( FCons FShowable r ) ( String -> f ) where
-  mkLogSpecFmt k _ str s = mkLogSpecFmt k ( Proxy :: Proxy r ) ( str <> s )
+  , Show s
+  ) => MakeLogSpecFmt k ( FCons FShowable r ) ( s -> f ) where
+  mkLogSpecFmt k _ str s = mkLogSpecFmt k ( Proxy :: Proxy r ) ( str <> show s )
 
 else
 
