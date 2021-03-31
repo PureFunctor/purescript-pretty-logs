@@ -1,12 +1,11 @@
 # purescript-pretty-logs
-Type-safe prettified `console.log` for PureScript.
+Type-safe prettified `console.log` for PureScript, derived from [safe-printf](https://github.com/kcsongor/purescript-safe-printf).
 
 ## Introduction
 `pretty-logs` provides a type-safe interface for creating prettified and formatted `console.log` messages on browsers. For example:
 ```purescript
 logBlack :: String -> Effect Unit
 logBlack = logPretty <<< logBlack_
-  -- [3] that can be composed with `logPretty`.
   where
     mkBlackSpec :: String -> CSS -> LogSpec
     mkBlackSpec = mkLogSpec ( Proxy :: _ "%c %s" )
@@ -17,8 +16,8 @@ logBlack = logPretty <<< logBlack_
     logBlack_ :: String -> LogSpec
     logBlack_ message =
       mkBlackSpec message ( CSS "background-color: black; color: white;" )
-    -- [2] You can then partially apply `mkBlackSpec` with inline `CSS`
-    --     styling to create a function...
+    -- [2] You can then partially apply `mkBlackSpec` with inline CSS
+    --     styling to create a function that can be composed with `logPretty`.
 
 main :: Effect Unit
 main = do
