@@ -21,6 +21,9 @@ foreign import data FCons :: FType -> FList -> FList
 -- | Type of format specifiers.
 data FType
 
+-- | Specifier for strings.
+foreign import data FString :: FType
+
 -- | Specifier for showable types.
 foreign import data FShowable :: FType
 
@@ -35,7 +38,8 @@ foreign import data FLiteral :: Symbol -> FType
 -- | Reads an `FType` from a string.
 class ReadF ( i :: Symbol ) ( o :: FType ) | i -> o
 
-instance readFs :: ReadF "s" FShowable
+instance readFs :: ReadF "s" FString
+instance readFS :: ReadF "S" FShowable
 instance readFc :: ReadF "c" FStyling
 
 {-----------------------------------------------------------------------}
@@ -107,6 +111,13 @@ instance mkLogSpecFmtEnd ::
   ( MakeLogSpecCss k f
   ) => MakeLogSpecFmt k FNil f where
   mkLogSpecFmt _ _ s = mkLogSpecCss s ( Proxy :: Proxy k ) []
+
+else
+
+instance mkLogSpecFmtConsString ::
+  ( MakeLogSpecFmt k r f
+  ) => MakeLogSpecFmt k ( FCons FString r ) ( String -> f ) where
+  mkLogSpecFmt k _ str s = mkLogSpecFmt k ( Proxy :: Proxy r ) ( str <> s )
 
 else
 
