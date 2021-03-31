@@ -18,6 +18,14 @@ logBlack = logPretty <<< logBlack_
       mkBlackSpec message ( CSS "background-color: black; color: white;" )
 
 
+logSimple :: String -> Effect Unit
+logSimple m = logPretty
+  { message: "%c " <> m
+  , styling: CSS "background-color: black; color: white;"
+  }
+
+
 main :: Effect Unit
 main = do
   logBlack "In the beginning, there was silence..."
+  logSimple "Types are pretty nice, but simplicity is also good."
