@@ -86,85 +86,86 @@ instance mkLogSpecDefault ::
   ( Parse s l
   , MakeLogSpecImpl l f
   ) => MakeLogSpec s f where
-  mkLogSpec _ = mkLogSpecImpl ( Proxy :: Proxy l ) ""
+  mkLogSpec _ = mkLogSpecImpl ( Proxy :: Proxy l ) []
 
 {-----------------------------------------------------------------------}
 
 -- | Creates a variadic function `f` that results in a `LogSpec using
 -- | the provided list of format specifiers.
 class MakeLogSpecImpl ( l :: FList ) f | l -> f where
-  mkLogSpecImpl :: Proxy l -> String -> f
+  mkLogSpecImpl :: Proxy l -> ( Array CSS ) -> f
 
 instance mkLogSpecImplDefault ::
-  ( MakeLogSpecFmt l l f
+  ( MakeLogSpecCss l l f
   ) => MakeLogSpecImpl l f where
-  mkLogSpecImpl l = mkLogSpecFmt l l
+  mkLogSpecImpl l = mkLogSpecCss l l
+
 
 {-----------------------------------------------------------------------}
 
 -- | Creates the first half of the variadic function `f` that handles
--- | the application of regular string formatting.
-class MakeLogSpecFmt ( k :: FList ) ( l :: FList ) f | l -> f where
-  mkLogSpecFmt :: Proxy k -> Proxy l -> String -> f
+-- | variadic arguments for `CSS` styling.
+class MakeLogSpecCss ( k :: FList )( l :: FList ) f | l -> f where
+  mkLogSpecCss :: Proxy k -> Proxy l -> ( Array CSS ) -> f
 
-instance mkLogSpecFmtEnd ::
-  ( MakeLogSpecCss k f
-  ) => MakeLogSpecFmt k FNil f where
-  mkLogSpecFmt _ _ s = mkLogSpecCss s ( Proxy :: Proxy k ) []
-
-else
-
-instance mkLogSpecFmtConsString ::
-  ( MakeLogSpecFmt k r f
-  ) => MakeLogSpecFmt k ( FCons FString r ) ( String -> f ) where
-  mkLogSpecFmt k _ str s = mkLogSpecFmt k ( Proxy :: Proxy r ) ( str <> s )
-
-else
-
-instance mkLogSpecFmtConsS ::
-  ( MakeLogSpecFmt k r f
-  , Show s
-  ) => MakeLogSpecFmt k ( FCons FShowable r ) ( s -> f ) where
-  mkLogSpecFmt k _ str s = mkLogSpecFmt k ( Proxy :: Proxy r ) ( str <> show s )
-
-else
-
-instance mkLogSpecFmtConsC ::
-  ( MakeLogSpecFmt k r f
-  ) => MakeLogSpecFmt k ( FCons FStyling r ) f where
-  mkLogSpecFmt k _ str = mkLogSpecFmt k ( Proxy :: Proxy r ) ( str <> "%c" )
-
-else
-
-instance mkLogSpecFmtConsA ::
-  ( IsSymbol l
-  , MakeLogSpecFmt k r f
-  ) => MakeLogSpecFmt k ( FCons ( FLiteral l ) r ) f where
-  mkLogSpecFmt k _ str = mkLogSpecFmt k ( Proxy :: Proxy r ) ( str <> reflectSymbol ( Proxy :: Proxy l ) )
-
-{-----------------------------------------------------------------------}
-
--- | Creates the second half of the variadic function `f` that handles
--- | the application of inline `CSS`.
-class MakeLogSpecCss ( l :: FList ) f | l -> f where
-  mkLogSpecCss :: String -> Proxy l -> ( Array CSS ) -> f
-
-instance mkLogSpecCssEnd :: MakeLogSpecCss FNil LogSpec where
-  mkLogSpecCss m _ xs = { message: m, styling: xs }
+instance mkLogSpecCssEnd ::
+  ( MakeLogSpecFmt k f
+  ) => MakeLogSpecCss k FNil f where
+  mkLogSpecCss _ _ styles = mkLogSpecFmt styles ( Proxy :: Proxy k ) ""
 
 else
 
 instance mkLogSpecCssConsC ::
-  ( MakeLogSpecCss r f
-  ) => MakeLogSpecCss ( FCons FStyling r ) ( CSS -> f ) where
+  ( MakeLogSpecCss k r f
+  ) => MakeLogSpecCss k ( FCons FStyling r ) ( CSS -> f ) where
   mkLogSpecCss m _ xs x = mkLogSpecCss m ( Proxy :: Proxy r ) ( xs <> [ x ] )
 
 else
 
 instance mkLogSpecCssConsA ::
-  ( MakeLogSpecCss r f
-  ) => MakeLogSpecCss ( FCons s r ) f where
+  ( MakeLogSpecCss k r f
+  ) => MakeLogSpecCss k ( FCons s r ) f where
   mkLogSpecCss m _ = mkLogSpecCss m ( Proxy :: Proxy r )
+
+{-----------------------------------------------------------------------}
+
+-- | Creates the second half of the variadic function `f` that handles
+-- | variadic arguments for string formatting.
+class MakeLogSpecFmt ( l :: FList ) f | l -> f where
+  mkLogSpecFmt :: ( Array CSS ) -> Proxy l -> String -> f
+
+instance mkLogSpecFmtEnd :: MakeLogSpecFmt FNil LogSpec where
+  mkLogSpecFmt styling _ message  = { message, styling }
+
+else
+
+instance mkLogSpecFmtConsString ::
+  ( MakeLogSpecFmt r f
+  ) => MakeLogSpecFmt ( FCons FString r ) ( String -> f ) where
+  mkLogSpecFmt styling _ str s = mkLogSpecFmt styling ( Proxy :: Proxy r ) ( str <> s )
+
+else
+
+instance mkLogSpecFmtConsS ::
+  ( MakeLogSpecFmt r f
+  , Show s
+  ) => MakeLogSpecFmt ( FCons FShowable r ) ( s -> f ) where
+  mkLogSpecFmt styling _ str s = mkLogSpecFmt styling ( Proxy :: Proxy r ) ( str <> show s )
+
+else
+
+instance mkLogSpecFmtConsC ::
+  ( MakeLogSpecFmt r f
+  ) => MakeLogSpecFmt ( FCons FStyling r ) f where
+  mkLogSpecFmt styling _ str = mkLogSpecFmt styling ( Proxy :: Proxy r ) ( str <> "%c" )
+
+else
+
+instance mkLogSpecFmtConsL ::
+  ( IsSymbol l
+  , MakeLogSpecFmt r f
+  ) => MakeLogSpecFmt ( FCons ( FLiteral l ) r ) f where
+  mkLogSpecFmt styling _ str = mkLogSpecFmt styling ( Proxy :: Proxy r ) ( str <> reflectSymbol ( Proxy :: Proxy l ) )
 
 {-----------------------------------------------------------------------}
 

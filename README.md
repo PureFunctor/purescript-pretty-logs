@@ -7,15 +7,19 @@ Type-safe prettified `console.log` for PureScript, derived from [safe-printf](ht
 logBlack :: String -> Effect Unit
 logBlack = logPretty <<< logBlack_
   where
-    mkBlackSpec :: String -> CSS -> LogSpec
+    mkBlackSpec :: CSS -> String -> LogSpec
     mkBlackSpec = mkLogSpec ( Proxy :: _ "%c %s" )
     -- [1] `mkLogSpec` creates a variadic function resulting in a `LogSpec`.
+    --
     --     In this case, the type-level symbol "%c %s" produces a function
-    --     that takes a `String` and a `CSS`.
-
+    --     that takes a `CSS` and a `String`.
+    --
+    --     Note that regardless of the ordering of the format specifiers,
+    --     `CSS` arguments are always emitted first in order to support
+    --     partial function application in a clean manner.
     logBlack_ :: String -> LogSpec
-    logBlack_ message =
-      mkBlackSpec message ( CSS "background-color: black; color: white;" )
+    logBlack_ =
+      mkBlackSpec ( CSS "background-color: black; color: white;" )
     -- [2] You can then partially apply `mkBlackSpec` with inline CSS
     --     styling to create a function that can be composed with `logPretty`.
 

@@ -10,12 +10,12 @@ import Type.Proxy (Proxy(..))
 logBlack :: String -> Effect Unit
 logBlack = logPretty <<< logBlack_
   where
-    mkBlackSpec :: String -> CSS -> LogSpec
+    mkBlackSpec :: CSS -> String -> LogSpec
     mkBlackSpec = mkLogSpec ( Proxy :: _ "%c %s" )
 
     logBlack_ :: String -> LogSpec
-    logBlack_ message =
-      mkBlackSpec message ( CSS "background-color: black; color: white;" )
+    logBlack_ =
+      mkBlackSpec ( CSS "background-color: black; color: white;" )
 
 
 logSimple :: String -> Effect Unit
